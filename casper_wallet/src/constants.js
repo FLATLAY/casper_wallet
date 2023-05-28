@@ -5,7 +5,7 @@ async function get_contract_hash(){
     let result = String((await axios.get("https://apiv2dev.droplinked.com/storage/contract_hash")).data.value);
     return result;
 }
-export const contract_hash = "8259fd8ae5d5a4ecf9f93f2570336ec621fdf9e36fd252b8459c3315351952ad";//get_contract_hash();
+export const contract_hash = "18412f814a3c32b9c67c7d3fc7e4164f16a96ff01d80839718e17e97413d38f3";//get_contract_hash();
 
 export const metadata_uref  = "metadatas";
 export const request_objects_uref  = "request_objects";

@@ -22,19 +22,28 @@ document.getElementById("install_btn").addEventListener("click" , async () => {
 
 document.getElementById("mint_btn").addEventListener("click" , async ()=>{
   casper_login(async (acc_info)=>{
-    let result = await record_merch({
+    let price = 10; // This price is in USD
+    let amount = 1000; // the amount of the product that we want to mint
+    // The comission in next line, defines how much of the selling profit, is for the co-seller (publisher)!
+    let comission = 1234; // It's actually 12.34%, but we do not have floating point numbers on contract, so we have to send it to contract as an integer!
+    
+    let product_properties = {
       "color" : "yellow",
       "size" : "XXL",
-      "Company" : "WormBros"
-    }, acc_info, "Y-Tshirt" , 10 * 100, 1000, 1234);
+      "Company" : "WormBros",
+      "someOtherField" : "some value!"
+    }
+    let result = await record_merch(product_properties, acc_info, "Y-Tshirt" , price * 100, amount, comission);
     console.log(result);
   });
 });
 
 document.getElementById("request_btn").addEventListener("click" , async () => {
   casper_login(async (acc_info)=>{
-    // Note : put the accountHash of the producer on the below
-    let result = await publish_request(1, 13 , "649ff2294eb022e9e4af6e3bf4eac9026c3fe96b725c3f85eb728d3ffaafaa39" , acc_info);
+    // Note : put the accountHash of the producer on the below, producer is the minter of the product!
+    let holder_id = 1; 
+    let amount_to_request = 13;
+    let result = await publish_request(holder_id, amount_to_request , "649ff2294eb022e9e4af6e3bf4eac9026c3fe96b725c3f85eb728d3ffaafaa39" , acc_info);
     console.log(result);
   });
 });

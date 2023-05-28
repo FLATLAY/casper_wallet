@@ -111,10 +111,9 @@ export let convert_hex_to_metadata = async function (hex){
     let name = nameTokenUriChecksum[1];
     let ipfs_uri = nameTokenUriChecksum[2];
     let checksum = nameTokenUriChecksum[3];
-    let result = {'comission' : comission , 'price' : price , 'name' : name, 'ipfs_uri' : 'ipfs://'+ipfs_uri.substring(0,ipfs_uri.length-1) , 'checksum' : checksum};
+    let result = {'comission' : comission , 'price' : price , 'name' : name.substring(0,name.length-1), 'ipfs_uri' : 'ipfs://'+ipfs_uri.substring(0,ipfs_uri.length-1) , 'checksum' : checksum};
     return result;
 }
-
 
 export let get_approved_nft = async function (approved_id){
     return await convert_hex_to_approved(String((await get_dict_item_bytes({
