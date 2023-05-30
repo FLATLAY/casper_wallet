@@ -1,4 +1,5 @@
-# casper_wallet
+# Droplinked Testing environment
+A little project to deploy and test droplinked's casper smart contract, and also view droplinked contract's storage state.
 
 ## How to run
 with vite-js installed, run 
