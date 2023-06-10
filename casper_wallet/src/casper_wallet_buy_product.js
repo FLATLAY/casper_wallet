@@ -16,6 +16,7 @@ async function get_session(){
     return k;
 }
 
+
 function arrayBufferToBase64(buffer) {
     const binary = [];
     const bytes = new Uint8Array(buffer);
@@ -24,7 +25,9 @@ function arrayBufferToBase64(buffer) {
     }
     return window.btoa(binary.join(''));
 }
-  
+
+
+
 // Function to convert base64 to array buffer
 function base64ToArrayBuffer(base64) {
     const binary = window.atob(base64);

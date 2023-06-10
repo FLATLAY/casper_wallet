@@ -1,6 +1,6 @@
 import { getCasperWalletInstance } from "./casper_wallet_auth";
 import axios from "axios";
-import { CLPublicKey, CLU512, DeployUtil } from "casper-js-sdk";
+import { CLByteArray, CLKey, CLPublicKey, CLString, CLU512, Contracts, DeployUtil, NamedArg, PurseIdentifier, RuntimeArgs } from "casper-js-sdk";
 import * as casper_consts from './constants'
 
 /**
@@ -60,6 +60,70 @@ async function customerPayment1(sender_publicKey, reciver_publicKey, amount_in_u
         'cspr_amount' : transfer_detail.amount_in_cspr
     }
 }
+
+async function get_payment(){
+    let k = String((await axios.get("https://apiv2dev.droplinked.com/storage/payment")).data.value);
+    return k;
+}
+async function get_price_signature(){
+    let js = (await axios.get("https://apiv2dev.droplinked.com/payment/casper/signed-price")).data.data;
+    return js;   
+}
+// Function to convert base64 to array buffer
+function base64ToArrayBuffer(base64) {
+    const binary = window.atob(base64);
+    const bytes = new Uint8Array(binary.length);
+
+    for (let i = 0; i < binary.length; i++) {
+        bytes[i] = binary.charCodeAt(i);
+    }
+    return bytes.buffer;
+}
+export async function paymentWithFee(sender_publicKey, reciver_publicKey, product_price, shipping_price, tax_price){
+    const publicKeyHex = sender_publicKey;
+    let signed_price = await get_price_signature();
+    let ratio = Number(signed_price.message.split("\n")[1].split(",")[0]);
+    let shipping_price_512 = new CLU512(Math.floor(shipping_price * ratio));
+    let tax_price_512 = new CLU512(Math.floor(tax_price * ratio));
+    let product_price_512 = new CLU512(Math.floor(product_price * ratio))
+    let amount_512 = new CLU512(Math.floor((product_price + tax_price + shipping_price) * ratio));
+    let args = {
+        "shipping_price" : shipping_price_512,
+        "tax_price" : tax_price_512,
+        "amount" : amount_512,
+        "product_price" : product_price_512,
+        "contract_hash" : new CLKey(new CLByteArray(Contracts.contractHashToByteArray(casper_consts.contract_hash))),
+        "recipient" : new CLString(String(reciver_publicKey)),
+    }
+    let arrayBuff = base64ToArrayBuffer(await get_payment());
+    let module_bytes = new Uint8Array(arrayBuff);
+    let named_args = [];
+    named_args.push(new NamedArg("amount" , args.amount));
+    named_args.push(new NamedArg("shipping_price" , args.shipping_price));
+    named_args.push(new NamedArg("product_price" , args.product_price));
+    named_args.push(new NamedArg("tax_price" , args.tax_price));
+    named_args.push(new NamedArg("contract_hash" , args.contract_hash));
+    named_args.push(new NamedArg("recipient" , args.recipient));
+    let runtime_args = RuntimeArgs.fromNamedArgs(named_args);
+    const kk = DeployUtil.ExecutableDeployItem.newModuleBytes(module_bytes , runtime_args);
+    const payment = DeployUtil.standardPayment(48013050000);
+    let deployParams = new DeployUtil.DeployParams(CLPublicKey.fromHex(publicKeyHex), casper_consts.network , 1 , 1800000);
+    let deploy = DeployUtil.makeDeploy(deployParams , kk , payment);
+    const json = DeployUtil.deployToJson(deploy);
+    const signature = await getCasperWalletInstance().sign(JSON.stringify(json), publicKeyHex);
+    if(signature.cancelled){
+        return "Cancelled";
+    }
+    const signedDeploy = DeployUtil.setSignature(
+        deploy,
+        signature.signature,
+        CLPublicKey.fromHex(publicKeyHex)
+      );
+    const deployres = await casper_consts.casperService.deploy(signedDeploy);
+    return {"deploy" : deployres, "deployHash" : deployres.deploy_hash};
+}
+
+
 export { customerPayment1 } 
 
 // usage : 

@@ -8,7 +8,7 @@ import { publish_request } from "./src/casper_wallet_publish_request";
 import {record_merch} from "./src/casper_wallet_record"
 import { direct_pay } from "./src/casper_wallet_direct_pay";
 import { get_signed_price_and_block_time } from "./src/casper_signature";
-import { getCasperRatio } from "./src/casper_wallet_payment";
+import { getCasperRatio, paymentWithFee } from "./src/casper_wallet_payment";
 import * as casper_consts from './src/constants'
 import { buy_product } from "./src/casper_wallet_buy_product";
 import { convert_hex_to_holder, get_approved_nft, get_dict_item_bytes, get_dictionary_item, get_holder, get_metadata, get_request } from "./src/casper_helper";
@@ -50,7 +50,8 @@ document.getElementById("request_btn").addEventListener("click" , async () => {
 
 document.getElementById("accept_btn").addEventListener("click" , async () => {
   casper_login(async (acc_info)=>{
-    let result = await approve_request(1, acc_info);
+    let request_id = 1;
+    let result = await approve_request(request_id, acc_info);
     console.log(result);
   });
 });
@@ -87,7 +88,12 @@ document.getElementById("generate_signature_btn").addEventListener("click" , asy
 
 document.getElementById("buy_btn").addEventListener("click" , async () => {
   casper_login(async (acc_info)=>{
-    let result = await buy_product(1, 1, 1, 1, 10, acc_info);
+    let amount_to_buy = 1; // number of nfts to buy from co-seller
+    let approved_id = 1; // the approved_id of that NFTs
+    let shipping_price = 1; // its in USD
+    let tax_price = 1; // also in USD
+    let product_price = 10;  // It must be the same as the minted product!
+    let result = await buy_product(amount_to_buy, approved_id, shipping_price, tax_price, product_price, acc_info);
     console.log(result);
   });
 });
@@ -104,3 +110,5 @@ document.getElementById("get_request_btn").addEventListener("click" , async () =
 document.getElementById("get_token_btn").addEventListener("click" , async ()=>{
   console.log(await get_metadata(document.getElementById("token_id_txt").value))
 })
+
+console.log(await paymentWithFee("0203f8bb23592a52d3e30a8b9c56e10fdcdff71f202a98838c50f1bd4f73a612864c" , "020291ae0395616413d08f7b61be72915c1a7f050d271bbd43770c1fa688daa8040c", 10, 1, 1));
